@@ -8,16 +8,17 @@ import java.util.HashMap;
 import java.util.Vector;
 import java.util.concurrent.ThreadLocalRandom;
 
+import se.miun.distsys.listeners.BullyMessageListener;
 import se.miun.distsys.listeners.ChatMessageListener;
 import se.miun.distsys.listeners.JoinMessageListener;
 import se.miun.distsys.listeners.LeaveMessageListener;
 import se.miun.distsys.listeners.JoinResponseMessageListener;
+import se.miun.distsys.messages.BullyMessage;
 import se.miun.distsys.messages.ChatMessage;
 import se.miun.distsys.messages.JoinMessage;
 import se.miun.distsys.messages.LeaveMessage;
 import se.miun.distsys.messages.Message;
 import se.miun.distsys.messages.MessageSerializer;
-import se.miun.distsys.vectorClocks.VectorClockHandler;
 import se.miun.distsys.messages.JoinResponseMessage;
 import se.miun.distsys.clients.Client;
 
@@ -31,15 +32,14 @@ public class GroupCommuncation {
 	//Message Listeners
 	ChatMessageListener chatMessageListener = null;
 	JoinMessageListener joinMessageListener = null;
+	BullyMessageListener bullyMessageListener = null;
 	LeaveMessageListener leaveMessageListener = null;
 	JoinResponseMessageListener joinResponseMessageListener = null;
 
 	//Create a new client.
 	public Client activeClient = createClient();
-	public HashMap<Integer, Integer> vectorClock = new HashMap<>();
+	public HashMap<Integer, Integer> electionCandidateList = new HashMap<>();
 	public Vector<Integer> activeClientList = new Vector<>();
-	public VectorClockHandler vectorClockHandler = new VectorClockHandler(activeClient, vectorClock);
-
 	public GroupCommuncation() {
 		try {
 			runGroupCommuncation = true;
@@ -47,6 +47,7 @@ public class GroupCommuncation {
 			ReceiveThread rt = new ReceiveThread();
 			rt.start();
 			sendJoinMessage(activeClient);
+			sendBullyMessage(activeClient);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -84,6 +85,11 @@ public class GroupCommuncation {
 				if (joinMessageListener != null) {
 					joinMessageListener.onIncomingJoinMessage(joinMessage);
 				}
+			} else if (message instanceof BullyMessage) {
+				BullyMessage bullyMessage = (BullyMessage) message;
+				if (joinMessageListener != null) {
+					bullyMessageListener.onIncomingBullyMessage(bullyMessage);
+				}
 			} else if (message instanceof JoinResponseMessage) {
 				JoinResponseMessage joinResponseMessage = (JoinResponseMessage) message;
 				if (joinResponseMessageListener != null) {
@@ -94,8 +100,7 @@ public class GroupCommuncation {
 				if (leaveMessageListener != null) {
 					leaveMessageListener.onIncomingLeaveMessage(leaveMessage);
 				}
-			}
-			else {
+			} else {
 				System.out.println("Unknown message type");
 			}
 		}
@@ -116,7 +121,6 @@ public class GroupCommuncation {
 	public void sendChatMessage(Client client, String chat) {
 		try {
 			ChatMessage chatMessage = new ChatMessage(client, chat);
-			vectorClockHandler.incrementVectorClock(chatMessage);
 			byte[] sendData = messageSerializer.serializeMessage(chatMessage);
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, 
 					InetAddress.getByName("255.255.255.255"), datagramSocketPort);
@@ -129,7 +133,6 @@ public class GroupCommuncation {
 	public void sendJoinMessage(Client client) {
 		try {
 			JoinMessage joinMessage = new JoinMessage(client);
-			vectorClockHandler.incrementVectorClock(joinMessage);
 			byte[] sendData = messageSerializer.serializeMessage(joinMessage);
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, 
 					InetAddress.getByName("255.255.255.255"), datagramSocketPort);
@@ -138,11 +141,23 @@ public class GroupCommuncation {
 			e.printStackTrace();
 		}
 	}
+	
+	public void sendBullyMessage(Client client) {
+		try {
+			BullyMessage bullyMessage = new BullyMessage(client);
+			byte[] sendData = messageSerializer.serializeMessage(bullyMessage);
+			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, 
+					InetAddress.getByName("255.255.255.255"), datagramSocketPort);
+			datagramSocket.send(sendPacket);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 
 	public void sendJoinResponseMessage() {
 		try {
 			JoinResponseMessage joinResponseMessage = new JoinResponseMessage(activeClient);
-			vectorClockHandler.incrementVectorClock(joinResponseMessage);
 			byte[] sendData = messageSerializer.serializeMessage(joinResponseMessage);
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, 
 					InetAddress.getByName("255.255.255.255"), datagramSocketPort);
@@ -155,7 +170,6 @@ public class GroupCommuncation {
 	public void sendLeaveMessage() {
 		try {
 			LeaveMessage leaveMessage = new LeaveMessage(activeClient);
-			vectorClockHandler.incrementVectorClock(leaveMessage);
 			byte[] sendData = messageSerializer.serializeMessage(leaveMessage);
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, 
 					InetAddress.getByName("255.255.255.255"), datagramSocketPort);
@@ -171,6 +185,10 @@ public class GroupCommuncation {
 
 	public void setJoinMessageListener(JoinMessageListener listener) {
 		this.joinMessageListener = listener;
+	}
+
+	public void setBullyMessageListener(BullyMessageListener listener) {
+		this.bullyMessageListener = listener;
 	}
 
 	public void setJoinResponseMessageListener(JoinResponseMessageListener listener) {

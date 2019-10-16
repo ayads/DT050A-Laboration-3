@@ -12,16 +12,18 @@ import java.awt.Font;
 import java.awt.Color;
 
 import se.miun.distsys.GroupCommuncation;
+import se.miun.distsys.listeners.BullyMessageListener;
 import se.miun.distsys.listeners.ChatMessageListener;
 import se.miun.distsys.listeners.JoinMessageListener;
 import se.miun.distsys.listeners.LeaveMessageListener;
 import se.miun.distsys.listeners.JoinResponseMessageListener;
+import se.miun.distsys.messages.BullyMessage;
 import se.miun.distsys.messages.ChatMessage;
 import se.miun.distsys.messages.JoinMessage;
 import se.miun.distsys.messages.LeaveMessage;
 import se.miun.distsys.messages.JoinResponseMessage;
 
-public class WindowProgram implements ChatMessageListener, JoinMessageListener, LeaveMessageListener, JoinResponseMessageListener, ActionListener {
+public class WindowProgram implements ChatMessageListener, JoinMessageListener, BullyMessageListener, LeaveMessageListener, JoinResponseMessageListener, ActionListener {
 	JFrame frame;
 	JTextPane txtpnChat = new JTextPane();
 	JTextPane txtpnMessage = new JTextPane();
@@ -95,27 +97,28 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 
 	@Override
 	public void onIncomingChatMessage(ChatMessage chatMessage) {
-		if(gc.vectorClockHandler.isCausalOrder(chatMessage, gc.vectorClock)){
-			gc.activeClientList.add(chatMessage.clientID);
-			txtpnChat.setText(chatMessage.clientID + " ➔ Hi! This is a generic BOT message!" + "\n" + txtpnChat.getText());
-			//txtpnChat.setText(chatMessage.clientID + chatMessage.chat + "\n" + txtpnChat.getText());
-		} else {
-			txtpnCausalOrder.setText(chatMessage.clientID + " is out of order!" + "\n" + txtpnCausalOrder.getText());
-		}
+		gc.activeClientList.add(chatMessage.clientID);
+		txtpnChat.setText(chatMessage.clientID + " ➔ Hi! This is a generic BOT message!" + "\n" + txtpnChat.getText());
+		//txtpnChat.setText(chatMessage.clientID + chatMessage.chat + "\n" + txtpnChat.getText());
 	}
 
 	@Override
 	public void onIncomingJoinMessage(JoinMessage joinMessage) {
 		try {
-			if(gc.vectorClockHandler.isCausalOrder(joinMessage, gc.vectorClock)){
-				gc.activeClientList.add(joinMessage.clientID);
-				txtpnStatus.setText(joinMessage.clientID + " join." + "\n" + txtpnStatus.getText());
-			} else {
-				txtpnCausalOrder.setText(joinMessage.clientID + " is out of order!" + "\n" + txtpnCausalOrder.getText());
-			}
+			gc.activeClientList.add(joinMessage.clientID);
+			txtpnStatus.setText(joinMessage.clientID + " join." + "\n" + txtpnStatus.getText());
 			if(joinMessage.clientID != gc.activeClient.getID()){				
 				gc.sendJoinResponseMessage();
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void onIncomingBullyMessage(BullyMessage bullyMessage) {
+		try {
+			//TODO: Handle Bully messages!
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -127,9 +130,6 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 			if (!gc.activeClientList.contains(joinResponseMessage.clientID)){
 				gc.activeClientList.add(joinResponseMessage.clientID);
 				txtpnStatus.setText(joinResponseMessage.clientID + " join response." + "\n" + txtpnStatus.getText());
-			}
-			else if(!gc.vectorClockHandler.isCausalOrder(joinResponseMessage, gc.vectorClock)) {
-				txtpnCausalOrder.setText(joinResponseMessage.clientID + " is out of order!" + "\n" + txtpnCausalOrder.getText());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
