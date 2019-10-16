@@ -47,7 +47,6 @@ public class GroupCommuncation {
 			ReceiveThread rt = new ReceiveThread();
 			rt.start();
 			sendJoinMessage(activeClient);
-			sendBullyMessage(activeClient);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -74,6 +73,7 @@ public class GroupCommuncation {
 				}
 			}
 		}
+
 		private void handleMessage (Message message) {
 			if(message instanceof ChatMessage) {
 				ChatMessage chatMessage = (ChatMessage) message;
@@ -87,7 +87,7 @@ public class GroupCommuncation {
 				}
 			} else if (message instanceof BullyMessage) {
 				BullyMessage bullyMessage = (BullyMessage) message;
-				if (joinMessageListener != null) {
+				if (bullyMessageListener != null) {
 					bullyMessageListener.onIncomingBullyMessage(bullyMessage);
 				}
 			} else if (message instanceof JoinResponseMessage) {

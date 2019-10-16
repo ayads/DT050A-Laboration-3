@@ -21,6 +21,7 @@ public class Program implements ChatMessageListener, JoinMessageListener, JoinRe
 		gc = new GroupCommuncation();		
 		gc.setChatMessageListener(this);
 		gc.setJoinMessageListener(this);
+		gc.setJoinMessageListener(this);
 		gc.setJoinResponseMessageListener(this);
 		gc.setLeaveMessageListener(this);
 		System.out.println("Group Communcation Started");

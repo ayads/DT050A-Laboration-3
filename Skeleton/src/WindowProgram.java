@@ -37,6 +37,7 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 		gc = new GroupCommuncation();
 		gc.setChatMessageListener(this);
 		gc.setJoinMessageListener(this);
+		gc.setBullyMessageListener(this);
 		gc.setJoinResponseMessageListener(this);
 		gc.setLeaveMessageListener(this);
 		System.out.println("Group Communcation Started");
@@ -107,6 +108,7 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 		try {
 			gc.activeClientList.add(joinMessage.clientID);
 			txtpnStatus.setText(joinMessage.clientID + " join." + "\n" + txtpnStatus.getText());
+			gc.sendBullyMessage(gc.activeClient);
 			if(joinMessage.clientID != gc.activeClient.getID()){				
 				gc.sendJoinResponseMessage();
 			}
