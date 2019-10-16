@@ -1,7 +1,7 @@
 package se.miun.distsys.messages;
 
 import se.miun.distsys.clients.Client;
-//Jetbarin
+
 public class SequenceRequest extends Sequence{
     private static final long serialVersionUID = 1L;
 	public int clientID;

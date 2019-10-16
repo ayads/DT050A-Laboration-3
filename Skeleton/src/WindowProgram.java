@@ -119,6 +119,7 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	public void onIncomingBullyMessage(BullyMessage bullyMessage) {
 		try {
 			//TODO: Handle Bully messages!
+			System.out.println("bullyMessage");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
