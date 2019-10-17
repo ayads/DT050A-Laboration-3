@@ -1,14 +1,11 @@
 package se.miun.distsys.messages;
 
-import se.miun.distsys.clients.Client;
-
 public class SequenceReply extends Sequence{
     
     private static final long serialVersionUID = 1L;
-	public int clientID;
+    private Integer myClientID = null;
     
-    public SequenceReply(Client client) {
-        super(client);
-        // TODO Auto-generated constructor stub
+    public SequenceReply(Integer clientID) {
+        super(clientID);
     }
 }

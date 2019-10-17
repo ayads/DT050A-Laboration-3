@@ -1,12 +1,11 @@
 package se.miun.distsys.messages;
-import se.miun.distsys.clients.Client;
-//Jetbarin
+
 public class ElectionRequest extends Election{
     
     private static final long serialVersionUID = 1L;
-	public int clientID;
+	private Integer myClientID = null;
     
-    public ElectionRequest(Client client) {
-        super(client);
+    public ElectionRequest(Integer clientID) {
+        super(clientID);
     }
 }
