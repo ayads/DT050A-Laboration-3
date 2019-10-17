@@ -117,6 +117,7 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 		try {
 			gc.myClientList.add(joinMessage.clientID);
 			txtpnStatus.setText(joinMessage.clientID + " join." + "\n" + txtpnStatus.getText());
+			gc.sendElectionRequestMessage(gc.myClientID);
 			if(joinMessage.clientID != gc.myClientID) {
 				gc.sendJoinResponseMessage(gc.myClientID);
 			}
@@ -152,8 +153,17 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingElectionRequestMessage(ElectionRequestMessage electionRequestMessage) {
 		try {
-			//TODO: Handle Bully messages!
-			System.out.println("electionRequestMessage");
+			/* System.out.println("---electionRequestMessage---");
+			System.out.println("electionRequestMessage.clientID: " + electionRequestMessage.clientID);
+			System.out.println("gc.myClientID: " + gc.myClientID); */
+			if (electionRequestMessage.clientID > gc.myClientID){
+				gc.electionCandidateList.add(electionRequestMessage.clientID);
+				gc.sendElectionResultMessage(electionRequestMessage.clientID);
+			} else {
+				gc.electionCandidateList.add(gc.myClientID);
+				gc.sendElectionResultMessage(gc.myClientID);
+			}
+			System.out.println(gc.electionCandidateList);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -162,8 +172,7 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingElectionResultMessage(ElectionResultMessage electionResultMessage) {
 		try {
-			//TODO: Handle Bully messages!
-			System.out.println("electionResultMessage");
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

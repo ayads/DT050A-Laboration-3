@@ -4,10 +4,10 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.util.HashMap;
 import java.util.Vector;
 import java.util.concurrent.ThreadLocalRandom;
 
+import se.miun.distsys.helpers.BullyMessageHandler;
 import se.miun.distsys.listeners.ChatMessageListener;
 import se.miun.distsys.listeners.JoinMessageListener;
 import se.miun.distsys.listeners.LeaveMessageListener;
@@ -16,7 +16,6 @@ import se.miun.distsys.listeners.ElectionRequestMessageListener;
 import se.miun.distsys.listeners.ElectionResultMessageListener;
 import se.miun.distsys.listeners.SequenceRequestMessageListener;
 import se.miun.distsys.listeners.SequenceReplyMessageListener;
-import se.miun.distsys.messages.BullyMessage;
 import se.miun.distsys.messages.ChatMessage;
 import se.miun.distsys.messages.ElectionRequestMessage;
 import se.miun.distsys.messages.ElectionResultMessage;
@@ -34,8 +33,7 @@ public class GroupCommuncation {
 	DatagramSocket datagramSocket = null;
 	boolean runGroupCommuncation = true;
 	MessageSerializer messageSerializer = new MessageSerializer();
-	
-	//Message Listeners
+
 	ChatMessageListener chatMessageListener = null;
 	JoinMessageListener joinMessageListener = null;
 	LeaveMessageListener leaveMessageListener = null;
@@ -46,8 +44,10 @@ public class GroupCommuncation {
 	SequenceReplyMessageListener sequenceReplyMessageListener = null;
 
 	public Integer myClientID = createClient();
-	public HashMap<Integer, Integer> electionCandidateList = new HashMap<>();
+	public Vector<Integer> electionCandidateList = new Vector<>();
 	public Vector<Integer> myClientList = new Vector<>();
+	public BullyMessageHandler bullyMessageHandler = new BullyMessageHandler();
+	
 	public GroupCommuncation() {
 		try {
 			runGroupCommuncation = true;
@@ -55,6 +55,7 @@ public class GroupCommuncation {
 			ReceiveThread rt = new ReceiveThread();
 			rt.start();
 			sendJoinMessage(myClientID);
+			//sendElectionRequestMessage(myClientID);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
