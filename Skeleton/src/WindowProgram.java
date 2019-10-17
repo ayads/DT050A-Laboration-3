@@ -12,18 +12,24 @@ import java.awt.Font;
 import java.awt.Color;
 
 import se.miun.distsys.GroupCommuncation;
-import se.miun.distsys.listeners.BullyMessageListener;
 import se.miun.distsys.listeners.ChatMessageListener;
+import se.miun.distsys.listeners.ElectionRequestMessageListener;
+import se.miun.distsys.listeners.ElectionResultMessageListener;
 import se.miun.distsys.listeners.JoinMessageListener;
 import se.miun.distsys.listeners.LeaveMessageListener;
+import se.miun.distsys.listeners.SequenceReplyMessageListener;
+import se.miun.distsys.listeners.SequenceRequestMessageListener;
 import se.miun.distsys.listeners.JoinResponseMessageListener;
-import se.miun.distsys.messages.BullyMessage;
 import se.miun.distsys.messages.ChatMessage;
+import se.miun.distsys.messages.ElectionRequestMessage;
+import se.miun.distsys.messages.ElectionResultMessage;
 import se.miun.distsys.messages.JoinMessage;
 import se.miun.distsys.messages.LeaveMessage;
+import se.miun.distsys.messages.SequenceReplyMessage;
+import se.miun.distsys.messages.SequenceRequestMessage;
 import se.miun.distsys.messages.JoinResponseMessage;
 
-public class WindowProgram implements ChatMessageListener, JoinMessageListener, BullyMessageListener, LeaveMessageListener, JoinResponseMessageListener, ActionListener {
+public class WindowProgram implements ChatMessageListener, JoinMessageListener, LeaveMessageListener, JoinResponseMessageListener, ElectionRequestMessageListener, ElectionResultMessageListener, SequenceRequestMessageListener, SequenceReplyMessageListener, ActionListener {
 	JFrame frame;
 	JTextPane txtpnChat = new JTextPane();
 	JTextPane txtpnMessage = new JTextPane();
@@ -37,9 +43,12 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 		gc = new GroupCommuncation();
 		gc.setChatMessageListener(this);
 		gc.setJoinMessageListener(this);
-		gc.setBullyMessageListener(this);
 		gc.setJoinResponseMessageListener(this);
 		gc.setLeaveMessageListener(this);
+		gc.setElectionRequestMessageListener(this);
+		gc.setElectionResultMessageListener(this);
+		gc.setSequenceRequestMessageListener(this);
+		gc.setSequenceReplyMessageListener(this);
 		System.out.println("Group Communcation Started");
 	}
 
@@ -98,7 +107,7 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 
 	@Override
 	public void onIncomingChatMessage(ChatMessage chatMessage) {
-		gc.activeClientList.add(chatMessage.clientID);
+		gc.myClientList.add(chatMessage.clientID);
 		txtpnChat.setText(chatMessage.clientID + " ➔ Hi! This is a generic BOT message!" + "\n" + txtpnChat.getText());
 		//txtpnChat.setText(chatMessage.clientID + chatMessage.chat + "\n" + txtpnChat.getText());
 	}
@@ -106,22 +115,11 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingJoinMessage(JoinMessage joinMessage) {
 		try {
-			gc.activeClientList.add(joinMessage.clientID);
+			gc.myClientList.add(joinMessage.clientID);
 			txtpnStatus.setText(joinMessage.clientID + " join." + "\n" + txtpnStatus.getText());
-			gc.sendBullyMessage();
 			if(joinMessage.clientID != gc.myClientID) {
-				gc.sendJoinResponseMessage();
+				gc.sendJoinResponseMessage(gc.myClientID);
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	@Override
-	public void onIncomingBullyMessage(BullyMessage bullyMessage) {
-		try {
-			//TODO: Handle Bully messages!
-			System.out.println(bullyMessage);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -130,8 +128,8 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingJoinResponseMessage(JoinResponseMessage joinResponseMessage) {
 		try {
-			if (!gc.activeClientList.contains(joinResponseMessage.clientID)){
-				gc.activeClientList.add(joinResponseMessage.clientID);
+			if (!gc.myClientList.contains(joinResponseMessage.clientID)){
+				gc.myClientList.add(joinResponseMessage.clientID);
 				txtpnStatus.setText(joinResponseMessage.clientID + " join response." + "\n" + txtpnStatus.getText());
 			}
 		} catch (Exception e) {
@@ -142,10 +140,50 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingLeaveMessage(LeaveMessage leaveMessage) {
 		try {
-			if (gc.activeClientList.contains(leaveMessage.clientID)){
+			if (gc.myClientList.contains(leaveMessage.clientID)){
 				txtpnStatus.setText(leaveMessage.clientID + " left." + "\n" + txtpnStatus.getText());
-				gc.activeClientList.remove(leaveMessage.clientID);
+				gc.myClientList.remove(leaveMessage.clientID);
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void onIncomingElectionRequestMessage(ElectionRequestMessage electionRequestMessage) {
+		try {
+			//TODO: Handle Bully messages!
+			System.out.println("electionRequestMessage");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void onIncomingElectionResultMessage(ElectionResultMessage electionResultMessage) {
+		try {
+			//TODO: Handle Bully messages!
+			System.out.println("electionResultMessage");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void onIncomingSequenceRequestMessage(SequenceRequestMessage sequenceRequestMessage) {
+		try {
+			//TODO: Handle Bully messages!
+			System.out.println("sequenceRequestMessage");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void onIncomingSequenceReplyMessage(SequenceReplyMessage sequenceReplyMessage) {
+		try {
+			//TODO: Handle Bully messages!
+			System.out.println("SequenceReplyMessage");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

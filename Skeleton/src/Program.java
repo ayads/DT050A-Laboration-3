@@ -33,7 +33,7 @@ public class Program implements ChatMessageListener, JoinMessageListener, JoinRe
 				String chat = br.readLine();			
 				gc.sendChatMessage(gc.myClientID, chat);
 				gc.sendJoinMessage(gc.myClientID);
-				gc.sendJoinResponseMessage();
+				gc.sendJoinResponseMessage(gc.myClientID);
 				
 				Thread.sleep(1000);
 			} catch (Exception e) {

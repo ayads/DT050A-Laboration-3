@@ -6,6 +6,6 @@ public class ElectionRequestMessage extends ElectionMessage{
 	public Integer clientID = null;
     
     public ElectionRequestMessage(Integer clientID) {
-        super(clientID);
+        this.clientID = clientID;
     }
 }
