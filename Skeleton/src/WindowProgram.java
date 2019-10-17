@@ -19,7 +19,6 @@ import se.miun.distsys.listeners.LeaveMessageListener;
 import se.miun.distsys.listeners.JoinResponseMessageListener;
 import se.miun.distsys.messages.BullyMessage;
 import se.miun.distsys.messages.ChatMessage;
-import se.miun.distsys.messages.ElectionRequest;
 import se.miun.distsys.messages.JoinMessage;
 import se.miun.distsys.messages.LeaveMessage;
 import se.miun.distsys.messages.JoinResponseMessage;
@@ -92,25 +91,25 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	public void actionPerformed(ActionEvent event) {
 		if (event.getActionCommand().equalsIgnoreCase("send")) {
  			for (int i = 0; i < 100; i++) {
-				gc.sendChatMessage(gc.clientID, txtpnMessage.getText());
+				gc.sendChatMessage(gc.myClientID, txtpnMessage.getText());
 			}
 		}
 	}
 
 	@Override
 	public void onIncomingChatMessage(ChatMessage chatMessage) {
-		gc.activeClientList.add(chatMessage.myClientID);
-		txtpnChat.setText(chatMessage.myClientID + " ➔ Hi! This is a generic BOT message!" + "\n" + txtpnChat.getText());
+		gc.activeClientList.add(chatMessage.clientID);
+		txtpnChat.setText(chatMessage.clientID + " ➔ Hi! This is a generic BOT message!" + "\n" + txtpnChat.getText());
 		//txtpnChat.setText(chatMessage.clientID + chatMessage.chat + "\n" + txtpnChat.getText());
 	}
 
 	@Override
 	public void onIncomingJoinMessage(JoinMessage joinMessage) {
 		try {
-			gc.activeClientList.add(joinMessage.myClientID);
-			txtpnStatus.setText(joinMessage.myClientID + " join." + "\n" + txtpnStatus.getText());
+			gc.activeClientList.add(joinMessage.clientID);
+			txtpnStatus.setText(joinMessage.clientID + " join." + "\n" + txtpnStatus.getText());
 			gc.sendBullyMessage();
-			if(joinMessage.myClientID != gc.clientID) {
+			if(joinMessage.clientID != gc.myClientID) {
 				gc.sendJoinResponseMessage();
 			}
 		} catch (Exception e) {
@@ -122,7 +121,6 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	public void onIncomingBullyMessage(BullyMessage bullyMessage) {
 		try {
 			//TODO: Handle Bully messages!
-			bullyMessage = new ElectionRequest(gc.clientID);
 			System.out.println(bullyMessage);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -132,9 +130,9 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingJoinResponseMessage(JoinResponseMessage joinResponseMessage) {
 		try {
-			if (!gc.activeClientList.contains(joinResponseMessage.myClientID)){
-				gc.activeClientList.add(joinResponseMessage.myClientID);
-				txtpnStatus.setText(joinResponseMessage.myClientID + " join response." + "\n" + txtpnStatus.getText());
+			if (!gc.activeClientList.contains(joinResponseMessage.clientID)){
+				gc.activeClientList.add(joinResponseMessage.clientID);
+				txtpnStatus.setText(joinResponseMessage.clientID + " join response." + "\n" + txtpnStatus.getText());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -144,9 +142,9 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingLeaveMessage(LeaveMessage leaveMessage) {
 		try {
-			if (gc.activeClientList.contains(leaveMessage.myClientID)){
-				txtpnStatus.setText(leaveMessage.myClientID + " left." + "\n" + txtpnStatus.getText());
-				gc.activeClientList.remove(leaveMessage.myClientID);
+			if (gc.activeClientList.contains(leaveMessage.clientID)){
+				txtpnStatus.setText(leaveMessage.clientID + " left." + "\n" + txtpnStatus.getText());
+				gc.activeClientList.remove(leaveMessage.clientID);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -31,8 +31,8 @@ public class Program implements ChatMessageListener, JoinMessageListener, JoinRe
 				
 				System.out.println("Write message to send: ");	
 				String chat = br.readLine();			
-				gc.sendChatMessage(gc.clientID, chat);
-				gc.sendJoinMessage(gc.clientID);
+				gc.sendChatMessage(gc.myClientID, chat);
+				gc.sendJoinMessage(gc.myClientID);
 				gc.sendJoinResponseMessage();
 				
 				Thread.sleep(1000);
@@ -50,17 +50,17 @@ public class Program implements ChatMessageListener, JoinMessageListener, JoinRe
 
 	@Override
 	public void onIncomingJoinMessage(JoinMessage joinMessage) {		
-		System.out.println("Incoming join-message id: " + joinMessage.myClientID);	
+		System.out.println("Incoming join-message id: " + joinMessage.clientID);	
 	}
 
 	@Override
 	public void onIncomingJoinResponseMessage(JoinResponseMessage joinResponseMessage) {		
-		System.out.println("Incoming response-join-message id: " + joinResponseMessage.myClientID);	
+		System.out.println("Incoming response-join-message id: " + joinResponseMessage.clientID);	
 	}
 
 	@Override
 	public void onIncomingLeaveMessage(LeaveMessage leaveMessage) {
-		System.out.println("Incoming leave-message id: " + leaveMessage.myClientID);	
+		System.out.println("Incoming leave-message id: " + leaveMessage.clientID);	
 	}
 
 	public static void main(String[] args) {
