@@ -6,7 +6,13 @@ import java.util.HashMap;
 
 public class BullyMessageHandler {
 
-	public BullyMessageHandler(){
+	private Integer myClientID = null;
+	private HashMap<Integer, Boolean> myElectionCandidateList;
+
+	public BullyMessageHandler(Integer clientID, HashMap<Integer, Boolean> myElectionCandidateList){
+		this.myClientID = clientID;
+		this.myElectionCandidateList = myElectionCandidateList;
+		myElectionCandidateList.put(myClientID, false);
     }
 
 	public Boolean isWithinTimeoutLimit(long startElectionTime){

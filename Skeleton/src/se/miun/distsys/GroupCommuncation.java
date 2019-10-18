@@ -51,7 +51,7 @@ public class GroupCommuncation {
 	public Client myClient = createClient();
 	public HashMap<Integer, Boolean> electionCandidateList = new HashMap<>();
 	public Vector<Integer> myClientList = new Vector<>();
-	public BullyMessageHandler bullyMessageHandler = new BullyMessageHandler();
+	public BullyMessageHandler bullyMessageHandler = new BullyMessageHandler(myClient.ID, electionCandidateList);
 	
 	public GroupCommuncation() {
 		try {
@@ -222,6 +222,17 @@ public class GroupCommuncation {
 		}
 	}
 
+	public void sendCoordinatorMessage(Integer myClientID) {
+		try {
+			CoordinatorMessage coordinatorMessage = new CoordinatorMessage(myClientID);
+			byte[] sendData = messageSerializer.serializeMessage(coordinatorMessage);
+			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, 
+					InetAddress.getByName("255.255.255.255"), datagramSocketPort);
+			datagramSocket.send(sendPacket);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 	public void sendSequenceRequestMessage(Integer myClientID) {
 		try {

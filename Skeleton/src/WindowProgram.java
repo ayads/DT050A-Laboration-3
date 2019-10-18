@@ -160,7 +160,8 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 			if (gc.bullyMessageHandler.isWithinTimeoutLimit(electionRequestMessage.startElectionTime)){
 				gc.sendElectionReplyMessage(electionRequestMessage.clientID);
 			 } else {
-				gc.electionCandidateList.put(electionRequestMessage.clientID, gc.bullyMessageHandler.setCoordinator());
+				System.out.println(electionRequestMessage.clientID + " is the coordinator now!");
+				gc.sendCoordinatorMessage(electionRequestMessage.clientID);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -170,7 +171,8 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingElectionReplyMessage(ElectionReplyMessage electionReplyMessage) {
 		try {
-			System.out.println("electionReplyMessage");
+			gc.electionCandidateList.put(Math.max(electionReplyMessage.clientID, gc.myClient.ID), false);
+			System.out.println("Election Candidate List: " + gc.electionCandidateList);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
