@@ -7,6 +7,7 @@ import java.net.MulticastSocket;
 import java.util.Vector;
 import java.util.concurrent.ThreadLocalRandom;
 
+import se.miun.distsys.clients.Client;
 import se.miun.distsys.helpers.BullyMessageHandler;
 import se.miun.distsys.listeners.ChatMessageListener;
 import se.miun.distsys.listeners.JoinMessageListener;
@@ -43,7 +44,7 @@ public class GroupCommuncation {
 	SequenceRequestMessageListener sequenceRequestMessageListener = null;
 	SequenceReplyMessageListener sequenceReplyMessageListener = null;
 
-	public Integer myClientID = createClient();
+	public Client myClient = createClient();
 	public Vector<Integer> electionCandidateList = new Vector<>();
 	public Vector<Integer> myClientList = new Vector<>();
 	public BullyMessageHandler bullyMessageHandler = new BullyMessageHandler();
@@ -54,15 +55,14 @@ public class GroupCommuncation {
 			datagramSocket = new MulticastSocket(datagramSocketPort);
 			ReceiveThread rt = new ReceiveThread();
 			rt.start();
-			sendJoinMessage(myClientID);
-			//sendElectionRequestMessage(myClientID);
+			sendJoinMessage(myClient);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
 	public void shutdown() {
-		sendLeaveMessage(myClientID);
+		sendLeaveMessage(myClient);
 		runGroupCommuncation = false;
 	}
 
@@ -130,10 +130,10 @@ public class GroupCommuncation {
 		}
 	}
 	
-	public Integer createClient() {
+	public Client createClient() {
 		try {
 			Thread.sleep(250);
-			int newClient = ThreadLocalRandom.current().nextInt(0, 100);
+			Client newClient = new Client(ThreadLocalRandom.current().nextInt(0, 100));
 			return newClient;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -141,9 +141,9 @@ public class GroupCommuncation {
 		return null;
 	}
 	
-	public void sendChatMessage(Integer myClientID, String myChat) {
+	public void sendChatMessage(Client myClient, String myChat) {
 		try {
-			ChatMessage chatMessage = new ChatMessage(myClientID, myChat);
+			ChatMessage chatMessage = new ChatMessage(myClient.ID, myChat);
 			byte[] sendData = messageSerializer.serializeMessage(chatMessage);
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, 
 					InetAddress.getByName("255.255.255.255"), datagramSocketPort);
@@ -153,9 +153,9 @@ public class GroupCommuncation {
 		}
 	}
 
-	public void sendJoinMessage(Integer myClientID) {
+	public void sendJoinMessage(Client myClient) {
 		try {
-			JoinMessage joinMessage = new JoinMessage(myClientID);
+			JoinMessage joinMessage = new JoinMessage(myClient.ID);
 			byte[] sendData = messageSerializer.serializeMessage(joinMessage);
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, 
 					InetAddress.getByName("255.255.255.255"), datagramSocketPort);
@@ -165,9 +165,9 @@ public class GroupCommuncation {
 		}
 	}
 
-	public void sendJoinResponseMessage(Integer myClientID) {
+	public void sendJoinResponseMessage(Client myClient) {
 		try {
-			JoinResponseMessage joinResponseMessage = new JoinResponseMessage(myClientID);
+			JoinResponseMessage joinResponseMessage = new JoinResponseMessage(myClient.ID);
 			byte[] sendData = messageSerializer.serializeMessage(joinResponseMessage);
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, 
 					InetAddress.getByName("255.255.255.255"), datagramSocketPort);
@@ -177,9 +177,9 @@ public class GroupCommuncation {
 		}	
 	}
 
-	public void sendLeaveMessage(Integer myClientID) {
+	public void sendLeaveMessage(Client myClient) {
 		try {
-			LeaveMessage leaveMessage = new LeaveMessage(myClientID);
+			LeaveMessage leaveMessage = new LeaveMessage(myClient.ID);
 			byte[] sendData = messageSerializer.serializeMessage(leaveMessage);
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, 
 					InetAddress.getByName("255.255.255.255"), datagramSocketPort);
@@ -189,9 +189,9 @@ public class GroupCommuncation {
 		}
 	}
 
-	public void sendElectionRequestMessage(Integer myClientID) {
+	public void sendElectionRequestMessage(Client myClient) {
 		try {
-			ElectionRequestMessage electionRequestMessage = new ElectionRequestMessage(myClientID);
+			ElectionRequestMessage electionRequestMessage = new ElectionRequestMessage(myClient.ID);
 			byte[] sendData = messageSerializer.serializeMessage(electionRequestMessage);
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, 
 					InetAddress.getByName("255.255.255.255"), datagramSocketPort);
@@ -214,9 +214,9 @@ public class GroupCommuncation {
 	}
 
 
-	public void sendSequenceRequestMessage(Integer myClientID) {
+	public void sendSequenceRequestMessage(Client myClient) {
 		try {
-			SequenceRequestMessage sequenceRequestMessage = new SequenceRequestMessage(myClientID);
+			SequenceRequestMessage sequenceRequestMessage = new SequenceRequestMessage(myClient.ID);
 			byte[] sendData = messageSerializer.serializeMessage(sequenceRequestMessage);
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, 
 					InetAddress.getByName("255.255.255.255"), datagramSocketPort);
@@ -227,9 +227,9 @@ public class GroupCommuncation {
 	}
 
 
-	public void sendSequenceReplyMessage(Integer myClientID) {
+	public void sendSequenceReplyMessage(Client myClient) {
 		try {
-			SequenceReplyMessage sequenceReplyMessage = new SequenceReplyMessage(myClientID);
+			SequenceReplyMessage sequenceReplyMessage = new SequenceReplyMessage(myClient.ID);
 			byte[] sendData = messageSerializer.serializeMessage(sequenceReplyMessage);
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, 
 					InetAddress.getByName("255.255.255.255"), datagramSocketPort);

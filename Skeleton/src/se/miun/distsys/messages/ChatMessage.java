@@ -1,6 +1,5 @@
 package se.miun.distsys.messages;
 
-
 public class ChatMessage extends Message {
 	
 	private static final long serialVersionUID = 1L;

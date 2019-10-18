@@ -31,9 +31,9 @@ public class Program implements ChatMessageListener, JoinMessageListener, JoinRe
 				
 				System.out.println("Write message to send: ");	
 				String chat = br.readLine();			
-				gc.sendChatMessage(gc.myClientID, chat);
-				gc.sendJoinMessage(gc.myClientID);
-				gc.sendJoinResponseMessage(gc.myClientID);
+				gc.sendChatMessage(gc.myClient, chat);
+				gc.sendJoinMessage(gc.myClient);
+				gc.sendJoinResponseMessage(gc.myClient);
 				
 				Thread.sleep(1000);
 			} catch (Exception e) {

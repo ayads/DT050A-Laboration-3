@@ -7,6 +7,7 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
+import java.util.Collections;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Color;
@@ -100,7 +101,7 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	public void actionPerformed(ActionEvent event) {
 		if (event.getActionCommand().equalsIgnoreCase("send")) {
  			for (int i = 0; i < 100; i++) {
-				gc.sendChatMessage(gc.myClientID, txtpnMessage.getText());
+				gc.sendChatMessage(gc.myClient, txtpnMessage.getText());
 			}
 		}
 	}
@@ -117,9 +118,9 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 		try {
 			gc.myClientList.add(joinMessage.clientID);
 			txtpnStatus.setText(joinMessage.clientID + " join." + "\n" + txtpnStatus.getText());
-			gc.sendElectionRequestMessage(gc.myClientID);
-			if(joinMessage.clientID != gc.myClientID) {
-				gc.sendJoinResponseMessage(gc.myClientID);
+			gc.sendElectionRequestMessage(gc.myClient);
+			if(joinMessage.clientID != gc.myClient.ID) {
+				gc.sendJoinResponseMessage(gc.myClient);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -153,16 +154,10 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingElectionRequestMessage(ElectionRequestMessage electionRequestMessage) {
 		try {
-			/* System.out.println("---electionRequestMessage---");
-			System.out.println("electionRequestMessage.clientID: " + electionRequestMessage.clientID);
-			System.out.println("gc.myClientID: " + gc.myClientID); */
-			if (electionRequestMessage.clientID > gc.myClientID){
-				gc.electionCandidateList.add(electionRequestMessage.clientID);
-				gc.sendElectionResultMessage(electionRequestMessage.clientID);
-			} else {
-				gc.electionCandidateList.add(gc.myClientID);
-				gc.sendElectionResultMessage(gc.myClientID);
-			}
+			// System.out.println("gc.myClientID: "+ gc.myClientID);
+			// System.out.println("electionRequestMessage.clientID: " + electionRequestMessage.clientID);
+			gc.electionCandidateList.add(Math.max(electionRequestMessage.clientID, gc.myClient.ID));
+			gc.sendElectionResultMessage(Math.max(electionRequestMessage.clientID, gc.myClient.ID));
 			System.out.println(gc.electionCandidateList);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -172,7 +167,11 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingElectionResultMessage(ElectionResultMessage electionResultMessage) {
 		try {
-			
+			if (gc.bullyMessageHandler.isTimeout(electionResultMessage.startElectionTime) && !gc.electionCandidateList.isEmpty()){
+				System.out.println("Winner candidate is: " + Collections.max(gc.electionCandidateList)); 
+			} else {
+				System.out.println("The election is over!");
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

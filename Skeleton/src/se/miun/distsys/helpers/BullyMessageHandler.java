@@ -1,27 +1,37 @@
 package se.miun.distsys.helpers;
 
-import se.miun.distsys.messages.BullyMessage;
-import se.miun.distsys.messages.ElectionRequestMessage;
-import se.miun.distsys.messages.ElectionResultMessage;
-import se.miun.distsys.messages.SequenceRequestMessage;
-import se.miun.distsys.messages.SequenceReplyMessage;
+import java.util.Vector;
 
-public class BullyMessageHandler{
-	
+import se.miun.distsys.clients.Client;
+
+public class BullyMessageHandler {
+
 	public BullyMessageHandler(){
     }
 
-    public void classifyBullyMessage(BullyMessage bullyMessage){
-		if(bullyMessage instanceof ElectionRequestMessage) {
-			ElectionRequestMessage electionRequestMessage = (ElectionRequestMessage) bullyMessage;
-		} else if(bullyMessage instanceof ElectionResultMessage) {
-			ElectionResultMessage electionResultMessage = (ElectionResultMessage) bullyMessage;
-		} else if(bullyMessage instanceof SequenceRequestMessage) {
-			SequenceRequestMessage sequenceRequestMessage = (SequenceRequestMessage) bullyMessage;
-		} else if(bullyMessage instanceof SequenceReplyMessage) {
-			SequenceReplyMessage sequenceReplyMessage = (SequenceReplyMessage) bullyMessage;
-		} else {
-			System.out.println("Unknown bullyMessage type");
+	public Client getMax(Client a, Client b){
+		return (a.ID > b.ID) ? a : b;
+	}
+
+	public Boolean isTimeout(long startElectionTime){
+		long estimatedElectionTime = System.currentTimeMillis() - startElectionTime;
+		if (estimatedElectionTime < 100){
+			return true;
 		}
+		return false;
+	}
+
+	public Integer getMaxCandidate(Vector<Client> electionCandidateList){
+    	Integer maxCandidate = Integer.MIN_VALUE;
+    	for(int i = 0; i < electionCandidateList.size(); i++){
+			if(electionCandidateList.get(i).ID > maxCandidate){
+    	        maxCandidate = electionCandidateList.get(i).ID;
+    	    }
+    	}
+    	return maxCandidate;
+	}
+	
+	public void assignCoordinator() {
+
 	}
 }
