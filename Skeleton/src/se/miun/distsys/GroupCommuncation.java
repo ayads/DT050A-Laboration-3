@@ -4,22 +4,25 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.HashMap;
 import java.util.Vector;
 import java.util.concurrent.ThreadLocalRandom;
 
 import se.miun.distsys.clients.Client;
 import se.miun.distsys.helpers.BullyMessageHandler;
 import se.miun.distsys.listeners.ChatMessageListener;
+import se.miun.distsys.listeners.CoordinatorMessageListener;
+import se.miun.distsys.listeners.ElectionReplyMessageListener;
 import se.miun.distsys.listeners.JoinMessageListener;
 import se.miun.distsys.listeners.LeaveMessageListener;
 import se.miun.distsys.listeners.JoinResponseMessageListener;
 import se.miun.distsys.listeners.ElectionRequestMessageListener;
-import se.miun.distsys.listeners.ElectionResultMessageListener;
 import se.miun.distsys.listeners.SequenceRequestMessageListener;
 import se.miun.distsys.listeners.SequenceReplyMessageListener;
 import se.miun.distsys.messages.ChatMessage;
+import se.miun.distsys.messages.CoordinatorMessage;
 import se.miun.distsys.messages.ElectionRequestMessage;
-import se.miun.distsys.messages.ElectionResultMessage;
+import se.miun.distsys.messages.ElectionReplyMessage;
 import se.miun.distsys.messages.JoinMessage;
 import se.miun.distsys.messages.LeaveMessage;
 import se.miun.distsys.messages.Message;
@@ -40,12 +43,13 @@ public class GroupCommuncation {
 	LeaveMessageListener leaveMessageListener = null;
 	JoinResponseMessageListener joinResponseMessageListener = null;
 	ElectionRequestMessageListener electionRequestMessageListener = null;
-	ElectionResultMessageListener electionResultMessageListener = null;
+	ElectionReplyMessageListener electionReplyMessageListener = null;
+	CoordinatorMessageListener coordinatorMessageListener = null;
 	SequenceRequestMessageListener sequenceRequestMessageListener = null;
 	SequenceReplyMessageListener sequenceReplyMessageListener = null;
 
 	public Client myClient = createClient();
-	public Vector<Integer> electionCandidateList = new Vector<>();
+	public HashMap<Integer, Boolean> electionCandidateList = new HashMap<>();
 	public Vector<Integer> myClientList = new Vector<>();
 	public BullyMessageHandler bullyMessageHandler = new BullyMessageHandler();
 	
@@ -109,10 +113,15 @@ public class GroupCommuncation {
 				if (electionRequestMessageListener != null) {
 					electionRequestMessageListener.onIncomingElectionRequestMessage(electionRequestMessage);
 				}
-			} else if (message instanceof ElectionResultMessage) {
-				ElectionResultMessage electionResultMessage = (ElectionResultMessage) message;
-				if (electionResultMessageListener != null) {
-					electionResultMessageListener.onIncomingElectionResultMessage(electionResultMessage);
+			} else if (message instanceof ElectionReplyMessage) {
+				ElectionReplyMessage electionReplyMessage = (ElectionReplyMessage) message;
+				if (electionReplyMessageListener != null) {
+					electionReplyMessageListener.onIncomingElectionReplyMessage(electionReplyMessage);
+				}
+			} else if (message instanceof CoordinatorMessage) {
+				CoordinatorMessage coordinatorMessage = (CoordinatorMessage) message;
+				if (electionReplyMessageListener != null) {
+					coordinatorMessageListener.onIncomingCoordinatorMessage(coordinatorMessage);
 				}
 			} else if (message instanceof SequenceRequestMessage) {
 				SequenceRequestMessage sequenceRequestMessage = (SequenceRequestMessage) message;
@@ -189,7 +198,7 @@ public class GroupCommuncation {
 		}
 	}
 
-	public void sendElectionRequestMessage(Client myClient) {
+	public void sendElectionRequestMessage(Integer myClientID) {
 		try {
 			ElectionRequestMessage electionRequestMessage = new ElectionRequestMessage(myClient.ID);
 			byte[] sendData = messageSerializer.serializeMessage(electionRequestMessage);
@@ -201,10 +210,10 @@ public class GroupCommuncation {
 		}
 	}
 
-	public void sendElectionResultMessage(Integer myClientID) {
+	public void sendElectionReplyMessage(Integer myClientID) {
 		try {
-			ElectionResultMessage electionResultMessage = new ElectionResultMessage(myClientID);
-			byte[] sendData = messageSerializer.serializeMessage(electionResultMessage);
+			ElectionReplyMessage electionReplyMessage = new ElectionReplyMessage(myClientID);
+			byte[] sendData = messageSerializer.serializeMessage(electionReplyMessage);
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, 
 					InetAddress.getByName("255.255.255.255"), datagramSocketPort);
 			datagramSocket.send(sendPacket);
@@ -214,9 +223,9 @@ public class GroupCommuncation {
 	}
 
 
-	public void sendSequenceRequestMessage(Client myClient) {
+	public void sendSequenceRequestMessage(Integer myClientID) {
 		try {
-			SequenceRequestMessage sequenceRequestMessage = new SequenceRequestMessage(myClient.ID);
+			SequenceRequestMessage sequenceRequestMessage = new SequenceRequestMessage(myClientID);
 			byte[] sendData = messageSerializer.serializeMessage(sequenceRequestMessage);
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, 
 					InetAddress.getByName("255.255.255.255"), datagramSocketPort);
@@ -227,9 +236,9 @@ public class GroupCommuncation {
 	}
 
 
-	public void sendSequenceReplyMessage(Client myClient) {
+	public void sendSequenceReplyMessage(Integer myClientID) {
 		try {
-			SequenceReplyMessage sequenceReplyMessage = new SequenceReplyMessage(myClient.ID);
+			SequenceReplyMessage sequenceReplyMessage = new SequenceReplyMessage(myClientID);
 			byte[] sendData = messageSerializer.serializeMessage(sequenceReplyMessage);
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, 
 					InetAddress.getByName("255.255.255.255"), datagramSocketPort);
@@ -259,8 +268,12 @@ public class GroupCommuncation {
 		this.electionRequestMessageListener = listener;
 	}
 
-	public void setElectionResultMessageListener(ElectionResultMessageListener listener) {
-		this.electionResultMessageListener = listener;
+	public void setElectionResultMessageListener(ElectionReplyMessageListener listener) {
+		this.electionReplyMessageListener = listener;
+	}
+
+	public void setCoordinatorMessageListener(CoordinatorMessageListener listener) {
+		this.coordinatorMessageListener = listener;
 	}
 
 	public void setSequenceRequestMessageListener(SequenceRequestMessageListener listener) {

@@ -1,19 +1,15 @@
 package se.miun.distsys.helpers;
 
-import java.util.Vector;
+import java.util.Collections;
+import java.util.HashMap;
 
-import se.miun.distsys.clients.Client;
 
 public class BullyMessageHandler {
 
 	public BullyMessageHandler(){
     }
 
-	public Client getMax(Client a, Client b){
-		return (a.ID > b.ID) ? a : b;
-	}
-
-	public Boolean isTimeout(long startElectionTime){
+	public Boolean isWithinTimeoutLimit(long startElectionTime){
 		long estimatedElectionTime = System.currentTimeMillis() - startElectionTime;
 		if (estimatedElectionTime < 100){
 			return true;
@@ -21,17 +17,13 @@ public class BullyMessageHandler {
 		return false;
 	}
 
-	public Integer getMaxCandidate(Vector<Client> electionCandidateList){
-    	Integer maxCandidate = Integer.MIN_VALUE;
-    	for(int i = 0; i < electionCandidateList.size(); i++){
-			if(electionCandidateList.get(i).ID > maxCandidate){
-    	        maxCandidate = electionCandidateList.get(i).ID;
-    	    }
-    	}
-    	return maxCandidate;
+	public HashMap<Integer, Boolean> getElectionWinner(HashMap<Integer, Boolean> electionCandidateList){
+		Integer maxClientID = (Collections.max(electionCandidateList.keySet()));
+		electionCandidateList.put(maxClientID, setCoordinator());
+		return electionCandidateList;
 	}
 	
-	public void assignCoordinator() {
-
+	public Boolean setCoordinator() {
+		return true;
 	}
 }

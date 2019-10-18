@@ -7,30 +7,31 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
-import java.util.Collections;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Color;
 
 import se.miun.distsys.GroupCommuncation;
 import se.miun.distsys.listeners.ChatMessageListener;
+import se.miun.distsys.listeners.CoordinatorMessageListener;
 import se.miun.distsys.listeners.ElectionRequestMessageListener;
-import se.miun.distsys.listeners.ElectionResultMessageListener;
+import se.miun.distsys.listeners.ElectionReplyMessageListener;
 import se.miun.distsys.listeners.JoinMessageListener;
 import se.miun.distsys.listeners.LeaveMessageListener;
 import se.miun.distsys.listeners.SequenceReplyMessageListener;
 import se.miun.distsys.listeners.SequenceRequestMessageListener;
 import se.miun.distsys.listeners.JoinResponseMessageListener;
 import se.miun.distsys.messages.ChatMessage;
+import se.miun.distsys.messages.CoordinatorMessage;
 import se.miun.distsys.messages.ElectionRequestMessage;
-import se.miun.distsys.messages.ElectionResultMessage;
+import se.miun.distsys.messages.ElectionReplyMessage;
 import se.miun.distsys.messages.JoinMessage;
 import se.miun.distsys.messages.LeaveMessage;
 import se.miun.distsys.messages.SequenceReplyMessage;
 import se.miun.distsys.messages.SequenceRequestMessage;
 import se.miun.distsys.messages.JoinResponseMessage;
 
-public class WindowProgram implements ChatMessageListener, JoinMessageListener, LeaveMessageListener, JoinResponseMessageListener, ElectionRequestMessageListener, ElectionResultMessageListener, SequenceRequestMessageListener, SequenceReplyMessageListener, ActionListener {
+public class WindowProgram implements ChatMessageListener, JoinMessageListener, LeaveMessageListener, JoinResponseMessageListener, ElectionRequestMessageListener, ElectionReplyMessageListener, CoordinatorMessageListener, SequenceRequestMessageListener, SequenceReplyMessageListener, ActionListener {
 	JFrame frame;
 	JTextPane txtpnChat = new JTextPane();
 	JTextPane txtpnMessage = new JTextPane();
@@ -118,9 +119,11 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 		try {
 			gc.myClientList.add(joinMessage.clientID);
 			txtpnStatus.setText(joinMessage.clientID + " join." + "\n" + txtpnStatus.getText());
-			gc.sendElectionRequestMessage(gc.myClient);
 			if(joinMessage.clientID != gc.myClient.ID) {
 				gc.sendJoinResponseMessage(gc.myClient);
+				if(joinMessage.clientID > gc.myClient.ID) {
+					gc.sendElectionRequestMessage(gc.myClient.ID);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -153,25 +156,30 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 
 	@Override
 	public void onIncomingElectionRequestMessage(ElectionRequestMessage electionRequestMessage) {
-		try {
-			// System.out.println("gc.myClientID: "+ gc.myClientID);
-			// System.out.println("electionRequestMessage.clientID: " + electionRequestMessage.clientID);
-			gc.electionCandidateList.add(Math.max(electionRequestMessage.clientID, gc.myClient.ID));
-			gc.sendElectionResultMessage(Math.max(electionRequestMessage.clientID, gc.myClient.ID));
-			System.out.println(gc.electionCandidateList);
+		try {				
+			if (gc.bullyMessageHandler.isWithinTimeoutLimit(electionRequestMessage.startElectionTime)){
+				gc.sendElectionReplyMessage(electionRequestMessage.clientID);
+			 } else {
+				gc.electionCandidateList.put(electionRequestMessage.clientID, gc.bullyMessageHandler.setCoordinator());
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
 	@Override
-	public void onIncomingElectionResultMessage(ElectionResultMessage electionResultMessage) {
+	public void onIncomingElectionReplyMessage(ElectionReplyMessage electionReplyMessage) {
 		try {
-			if (gc.bullyMessageHandler.isTimeout(electionResultMessage.startElectionTime) && !gc.electionCandidateList.isEmpty()){
-				System.out.println("Winner candidate is: " + Collections.max(gc.electionCandidateList)); 
-			} else {
-				System.out.println("The election is over!");
-			}
+			System.out.println("electionReplyMessage");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Override
+	public void onIncomingCoordinatorMessage(CoordinatorMessage coordinatorMessage) {
+		try {
+			System.out.println("coordinatorMessage");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -180,7 +188,6 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingSequenceRequestMessage(SequenceRequestMessage sequenceRequestMessage) {
 		try {
-			//TODO: Handle Bully messages!
 			System.out.println("sequenceRequestMessage");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -190,7 +197,6 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingSequenceReplyMessage(SequenceReplyMessage sequenceReplyMessage) {
 		try {
-			//TODO: Handle Bully messages!
 			System.out.println("SequenceReplyMessage");
 		} catch (Exception e) {
 			e.printStackTrace();
