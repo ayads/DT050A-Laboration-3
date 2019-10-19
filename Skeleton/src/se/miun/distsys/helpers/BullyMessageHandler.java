@@ -6,18 +6,12 @@ import java.util.HashMap;
 
 public class BullyMessageHandler {
 
-	private Integer myClientID = null;
-	private HashMap<Integer, Boolean> myElectionCandidateList;
-
-	public BullyMessageHandler(Integer clientID, HashMap<Integer, Boolean> myElectionCandidateList){
-		this.myClientID = clientID;
-		this.myElectionCandidateList = myElectionCandidateList;
-		myElectionCandidateList.put(myClientID, false);
+	public BullyMessageHandler(){
     }
 
 	public Boolean isWithinTimeoutLimit(long startElectionTime){
 		long estimatedElectionTime = System.currentTimeMillis() - startElectionTime;
-		if (estimatedElectionTime < 100){
+		if (estimatedElectionTime < 250){
 			return true;
 		}
 		return false;

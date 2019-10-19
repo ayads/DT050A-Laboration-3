@@ -51,7 +51,7 @@ public class GroupCommuncation {
 	public Client myClient = createClient();
 	public HashMap<Integer, Boolean> electionCandidateList = new HashMap<>();
 	public Vector<Integer> myClientList = new Vector<>();
-	public BullyMessageHandler bullyMessageHandler = new BullyMessageHandler(myClient.ID, electionCandidateList);
+	public BullyMessageHandler bullyMessageHandler = new BullyMessageHandler();
 	
 	public GroupCommuncation() {
 		try {

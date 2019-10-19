@@ -49,6 +49,7 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 		gc.setLeaveMessageListener(this);
 		gc.setElectionRequestMessageListener(this);
 		gc.setElectionResultMessageListener(this);
+		gc.setCoordinatorMessageListener(this);
 		gc.setSequenceRequestMessageListener(this);
 		gc.setSequenceReplyMessageListener(this);
 		System.out.println("Group Communcation Started");
@@ -121,9 +122,7 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 			txtpnStatus.setText(joinMessage.clientID + " join." + "\n" + txtpnStatus.getText());
 			if(joinMessage.clientID != gc.myClient.ID) {
 				gc.sendJoinResponseMessage(gc.myClient);
-				if(joinMessage.clientID > gc.myClient.ID) {
-					gc.sendElectionRequestMessage(gc.myClient.ID);
-				}
+				gc.sendElectionRequestMessage(joinMessage.clientID);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -157,11 +156,8 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingElectionRequestMessage(ElectionRequestMessage electionRequestMessage) {
 		try {				
-			if (gc.bullyMessageHandler.isWithinTimeoutLimit(electionRequestMessage.startElectionTime)){
-				gc.sendElectionReplyMessage(electionRequestMessage.clientID);
-			 } else {
-				System.out.println(electionRequestMessage.clientID + " is the coordinator now!");
-				gc.sendCoordinatorMessage(electionRequestMessage.clientID);
+			if (gc.myClient.ID > electionRequestMessage.clientID){
+				gc.sendElectionReplyMessage(gc.myClient.ID);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -171,8 +167,12 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingElectionReplyMessage(ElectionReplyMessage electionReplyMessage) {
 		try {
-			gc.electionCandidateList.put(Math.max(electionReplyMessage.clientID, gc.myClient.ID), false);
-			System.out.println("Election Candidate List: " + gc.electionCandidateList);
+			if(gc.bullyMessageHandler.isWithinTimeoutLimit(electionReplyMessage.startElectionTime)){
+				gc.electionCandidateList.put(electionReplyMessage.clientID, false);
+				System.out.println("Election Candidate List: " + gc.electionCandidateList);
+			} else {
+				gc.sendCoordinatorMessage(electionReplyMessage.clientID);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -181,7 +181,7 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingCoordinatorMessage(CoordinatorMessage coordinatorMessage) {
 		try {
-			System.out.println("coordinatorMessage");
+			System.out.println(coordinatorMessage.clientID + "is now the Coordinator");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
