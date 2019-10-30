@@ -107,7 +107,6 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void actionPerformed(ActionEvent event) {
 		if (event.getActionCommand().equalsIgnoreCase("send")) {
-			//gc.sendChatMessage(gc.myClient, txtpnMessage.getText());
 			gc.sendSequenceRequestMessage(gc.myClient.ID, txtpnMessage.getText());
 		}
 	}
@@ -115,8 +114,6 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingChatMessage(ChatMessage chatMessage) {
 		gc.myClientList.put(chatMessage.clientID, false);
-		//txtpnChat.setText(chatMessage.clientID + " ➔ Hi! This is a generic BOT message!" + "\n" + txtpnChat.getText());
-		//txtpnChat.setText(chatMessage.clientID + chatMessage.chat + "\n" + txtpnChat.getText());
 	}
 
 	@Override
