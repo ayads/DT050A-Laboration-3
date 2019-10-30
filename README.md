@@ -38,6 +38,7 @@ An election process is typically performed in two phases:
 * If `state_pj = ELECTION-OFF` then start election procedure.
 
 ## Project Structure
+```
 .
 └── src
     ├── se
@@ -75,5 +76,6 @@ An election process is typically performed in two phases:
     │           └── GroupCommunication.java
     ├── Program.java
     └── WindowProgram.java
+```
 
 ![Message structure](/Images/MessageStructure.png)
