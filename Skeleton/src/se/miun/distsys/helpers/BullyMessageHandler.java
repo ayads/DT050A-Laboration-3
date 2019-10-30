@@ -2,6 +2,7 @@ package se.miun.distsys.helpers;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Vector;
 
 
 public class BullyMessageHandler {
@@ -17,9 +18,9 @@ public class BullyMessageHandler {
 		return false;
 	}
 
-	public HashMap<Integer, Boolean> getElectionWinner(HashMap<Integer, Boolean> electionCandidateList){
-		Integer maxClientID = (Collections.max(electionCandidateList.keySet()));
-		electionCandidateList.put(maxClientID, setCoordinator());
+	public Vector<Integer> getElectionWinner(Vector<Integer> electionCandidateList){
+		Integer maxClientID = (Collections.max(electionCandidateList));
+		electionCandidateList.add(maxClientID);
 		return electionCandidateList;
 	}
 	

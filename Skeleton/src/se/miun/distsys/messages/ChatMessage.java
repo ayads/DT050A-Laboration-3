@@ -6,6 +6,7 @@ public class ChatMessage extends Message {
 	public String chat = "";
 	public Integer clientID = null;
 
+
 	public ChatMessage(Integer clientID, String chat) {
         this.clientID = clientID;
 		this.chat = chat;

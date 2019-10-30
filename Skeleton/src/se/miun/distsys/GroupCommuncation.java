@@ -49,8 +49,8 @@ public class GroupCommuncation {
 	SequenceReplyMessageListener sequenceReplyMessageListener = null;
 
 	public Client myClient = createClient();
-	public HashMap<Integer, Boolean> electionCandidateList = new HashMap<>();
-	public Vector<Integer> myClientList = new Vector<>();
+	public HashMap<Integer, Boolean> myClientList = new HashMap<>();
+	public Vector<Integer> electionCandidateList = new Vector<>();
 	public BullyMessageHandler bullyMessageHandler = new BullyMessageHandler();
 	
 	public GroupCommuncation() {
@@ -142,7 +142,7 @@ public class GroupCommuncation {
 	public Client createClient() {
 		try {
 			Thread.sleep(250);
-			Client newClient = new Client(ThreadLocalRandom.current().nextInt(0, 100));
+			Client newClient = new Client(ThreadLocalRandom.current().nextInt(0, 1000));
 			return newClient;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -234,9 +234,9 @@ public class GroupCommuncation {
 		}
 	}
 
-	public void sendSequenceRequestMessage(Integer myClientID) {
+	public void sendSequenceRequestMessage(Integer myClientID, String chat) {
 		try {
-			SequenceRequestMessage sequenceRequestMessage = new SequenceRequestMessage(myClientID);
+			SequenceRequestMessage sequenceRequestMessage = new SequenceRequestMessage(myClientID, chat);
 			byte[] sendData = messageSerializer.serializeMessage(sequenceRequestMessage);
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, 
 					InetAddress.getByName("255.255.255.255"), datagramSocketPort);
@@ -247,9 +247,9 @@ public class GroupCommuncation {
 	}
 
 
-	public void sendSequenceReplyMessage(Integer myClientID) {
+	public void sendSequenceReplyMessage(Integer myClientID, String chat, Long time) {
 		try {
-			SequenceReplyMessage sequenceReplyMessage = new SequenceReplyMessage(myClientID);
+			SequenceReplyMessage sequenceReplyMessage = new SequenceReplyMessage(myClientID, chat, time);
 			byte[] sendData = messageSerializer.serializeMessage(sequenceReplyMessage);
 			DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, 
 					InetAddress.getByName("255.255.255.255"), datagramSocketPort);

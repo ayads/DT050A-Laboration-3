@@ -7,6 +7,9 @@ import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Color;
@@ -39,6 +42,8 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	JTextPane txtpnCausalOrder = new JTextPane();
 
 	GroupCommuncation gc = null;
+
+	Long previousTime = 0L;
 
 	public WindowProgram() {
 		initializeFrame();
@@ -102,23 +107,22 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void actionPerformed(ActionEvent event) {
 		if (event.getActionCommand().equalsIgnoreCase("send")) {
- 			for (int i = 0; i < 100; i++) {
-				gc.sendChatMessage(gc.myClient, txtpnMessage.getText());
-			}
+			//gc.sendChatMessage(gc.myClient, txtpnMessage.getText());
+			gc.sendSequenceRequestMessage(gc.myClient.ID, txtpnMessage.getText());
 		}
 	}
 
 	@Override
 	public void onIncomingChatMessage(ChatMessage chatMessage) {
-		gc.myClientList.add(chatMessage.clientID);
-		txtpnChat.setText(chatMessage.clientID + " ➔ Hi! This is a generic BOT message!" + "\n" + txtpnChat.getText());
+		gc.myClientList.put(chatMessage.clientID, false);
+		//txtpnChat.setText(chatMessage.clientID + " ➔ Hi! This is a generic BOT message!" + "\n" + txtpnChat.getText());
 		//txtpnChat.setText(chatMessage.clientID + chatMessage.chat + "\n" + txtpnChat.getText());
 	}
 
 	@Override
 	public void onIncomingJoinMessage(JoinMessage joinMessage) {
 		try {
-			gc.myClientList.add(joinMessage.clientID);
+			gc.myClientList.put(joinMessage.clientID, false);
 			txtpnStatus.setText(joinMessage.clientID + " join." + "\n" + txtpnStatus.getText());
 			if(joinMessage.clientID != gc.myClient.ID) {
 				gc.sendJoinResponseMessage(gc.myClient);
@@ -132,8 +136,8 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingJoinResponseMessage(JoinResponseMessage joinResponseMessage) {
 		try {
-			if (!gc.myClientList.contains(joinResponseMessage.clientID)){
-				gc.myClientList.add(joinResponseMessage.clientID);
+			if (!gc.myClientList.containsKey(joinResponseMessage.clientID)){
+				gc.myClientList.put(joinResponseMessage.clientID, false);
 				txtpnStatus.setText(joinResponseMessage.clientID + " join response." + "\n" + txtpnStatus.getText());
 			}
 		} catch (Exception e) {
@@ -144,7 +148,7 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingLeaveMessage(LeaveMessage leaveMessage) {
 		try {
-			if (gc.myClientList.contains(leaveMessage.clientID)){
+			if (gc.myClientList.containsKey(leaveMessage.clientID)){
 				txtpnStatus.setText(leaveMessage.clientID + " left." + "\n" + txtpnStatus.getText());
 				gc.myClientList.remove(leaveMessage.clientID);
 			}
@@ -168,8 +172,9 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	public void onIncomingElectionReplyMessage(ElectionReplyMessage electionReplyMessage) {
 		try {
 			if(gc.bullyMessageHandler.isWithinTimeoutLimit(electionReplyMessage.startElectionTime)){
-				gc.electionCandidateList.put(electionReplyMessage.clientID, false);
-				System.out.println("Election Candidate List: " + gc.electionCandidateList);
+				gc.electionCandidateList.add(electionReplyMessage.clientID);
+				Integer maxClientID = (Collections.max(gc.electionCandidateList));
+				gc.sendCoordinatorMessage(maxClientID);
 			} else {
 				gc.sendCoordinatorMessage(electionReplyMessage.clientID);
 			}
@@ -181,7 +186,11 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingCoordinatorMessage(CoordinatorMessage coordinatorMessage) {
 		try {
-			System.out.println(coordinatorMessage.clientID + "is now the Coordinator");
+			for (HashMap.Entry<Integer, Boolean> entry : gc.myClientList.entrySet()) {
+				gc.myClientList.put(entry.getKey(),false);
+			}
+			gc.myClientList.put(coordinatorMessage.clientID, gc.bullyMessageHandler.setCoordinator());
+			System.out.println("gc.myClientList: "+gc.myClientList);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -190,7 +199,10 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingSequenceRequestMessage(SequenceRequestMessage sequenceRequestMessage) {
 		try {
-			System.out.println("sequenceRequestMessage");
+			if(gc.myClientList.get(gc.myClient.ID)){
+				gc.sendSequenceReplyMessage(sequenceRequestMessage.clientID, sequenceRequestMessage.chat, sequenceRequestMessage.startTime);
+				System.out.println(sequenceRequestMessage.startTime);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -199,7 +211,10 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingSequenceReplyMessage(SequenceReplyMessage sequenceReplyMessage) {
 		try {
-			System.out.println("SequenceReplyMessage");
+			if(previousTime<sequenceReplyMessage.time){
+				txtpnChat.setText(sequenceReplyMessage.clientID + sequenceReplyMessage.chat + "\n" + txtpnChat.getText());
+				previousTime = sequenceReplyMessage.time;
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
