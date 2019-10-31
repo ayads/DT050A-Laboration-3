@@ -82,9 +82,7 @@ An election process is typically performed in two phases:
 
 ## Code description
 
-When a new client joins the chat they send a "join message" to all the other participants in the chat.
-The new client is added to the client list and an election starts to decide who has the highest ID and
-hence will be chosen as the coordinator of the chat. 
+When a new client joins the chat they send a "join message" to all the other participants in the chat.The new client is added to the client list and an election starts to decide who has the highest ID and hence will be chosen as the coordinator of the chat. 
 
 ```java
     public void onIncomingJoinMessage(JoinMessage joinMessage) {
@@ -101,9 +99,7 @@ hence will be chosen as the coordinator of the chat.
     }
 ```
 
-When an election request is made the recieving clients will compare their ID to the election leaders ID.
-If the recieving clients ID is larger than the election leaders ID then their ID will send a message back 
-to the election leader letting the election leader know that they are up for election.
+When an election request is made the recieving clients will compare their ID to the election leaders ID. If the recieving clients ID is larger than the election leaders ID then their ID will send a message back to the election leader letting the election leader know that they are up for election.
 
 If no client has a larged ID than the election leader the leader will be chosen as the new coordinator.
 
@@ -119,11 +115,9 @@ If no client has a larged ID than the election leader the leader will be chosen 
 	}
 ```
 
-If one or multiple participants are found with a higher ID than the election leader and answers the election
-message in time the participants with a higher ID are added to the list of posible coordinators.
+If one or multiple participants are found with a higher ID than the election leader and answers the election message in time the participants with a higher ID are added to the list of posible coordinators.
 
-The largest ID in the list of posible coordinators is then chosen as the new coordinator of the group chat and
-has to send a message to all the chat members letting them know that they are chosen as the new coordinator.
+The largest ID in the list of posible coordinators is then chosen as the new coordinator of the group chat and has to send a message to all the chat members letting them know that they are chosen as the new coordinator.
 
 ```java
 	public void onIncomingElectionReplyMessage(ElectionReplyMessage electionReplyMessage) {
@@ -134,6 +128,63 @@ has to send a message to all the chat members letting them know that they are ch
 				gc.sendCoordinatorMessage(maxClientID);
 			} else {
 				gc.sendCoordinatorMessage(electionReplyMessage.clientID);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+```
+
+All clients are set to FALSE in the 'myClientList' and the new coordinator is mapped to TRUE. A coordinator message is sent from the new coordinator to all participants in the chat.
+
+```java
+	public void onIncomingCoordinatorMessage(CoordinatorMessage coordinatorMessage) {
+		try {
+			for (HashMap.Entry<Integer, Boolean> entry : gc.myClientList.entrySet()) {
+				gc.myClientList.put(entry.getKey(),false);
+			}
+			gc.myClientList.put(coordinatorMessage.clientID, gc.bullyMessageHandler.setCoordinator());
+			System.out.println("Coordinator: " + gc.myClientList);
+		
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+```
+
+When a chat message is sent the coordinator has to be noticed so that messages are sent in the correct order to ensure Total Ordering. This is done by sending a request to sendSequenceRequestMessage.
+
+```java
+	public void actionPerformed(ActionEvent event) {
+		if (event.getActionCommand().equalsIgnoreCase("send")) {
+			gc.sendSequenceRequestMessage(gc.myClient.ID, txtpnMessage.getText());
+		}
+	}
+```
+
+If the current client is the coordinator then it controls the sending of the requested message.
+
+```java
+	public void onIncomingSequenceRequestMessage(SequenceRequestMessage sequenceRequestMessage) {
+		try {
+			if(gc.myClientList.get(gc.myClient.ID)){
+				gc.sendSequenceReplyMessage(sequenceRequestMessage.clientID, sequenceRequestMessage.chat, sequenceRequestMessage.startTime);
+				System.out.println(sequenceRequestMessage.startTime);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+    }
+```
+
+Using the timestamp of the message and comparing it to the previous messages timestamp. If the previous timestamp is less than the new messages timestamp the message can be sent. The new time is then set as the previous for the next sent message.
+
+```java
+	public void onIncomingSequenceReplyMessage(SequenceReplyMessage sequenceReplyMessage) {
+		try {
+			if(previousTime<sequenceReplyMessage.time){
+				txtpnChat.setText(sequenceReplyMessage.clientID + sequenceReplyMessage.chat + "\n" + txtpnChat.getText());
+				previousTime = sequenceReplyMessage.time;
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
