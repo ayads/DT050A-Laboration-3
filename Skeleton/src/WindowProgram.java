@@ -9,7 +9,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Color;
@@ -147,7 +146,15 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 		try {
 			if (gc.myClientList.containsKey(leaveMessage.clientID)){
 				txtpnStatus.setText(leaveMessage.clientID + " left." + "\n" + txtpnStatus.getText());
-				gc.myClientList.remove(leaveMessage.clientID);
+				gc.electionCandidateList.remove(leaveMessage.clientID);
+				
+				//System.out.println("New List: "+gc.myClientList);
+				if(gc.myClientList.get(leaveMessage.clientID)){
+					gc.myClientList.remove(leaveMessage.clientID);
+					if(gc.myClient.ID != leaveMessage.clientID){
+						gc.sendElectionRequestMessage(gc.myClient.ID);
+					}
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -187,7 +194,7 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 				gc.myClientList.put(entry.getKey(),false);
 			}
 			gc.myClientList.put(coordinatorMessage.clientID, gc.bullyMessageHandler.setCoordinator());
-			System.out.println("gc.myClientList: "+gc.myClientList);
+			System.out.println("Coordinator: "+gc.myClientList);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
