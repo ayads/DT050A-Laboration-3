@@ -56,6 +56,8 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 		gc.setCoordinatorMessageListener(this);
 		gc.setSequenceRequestMessageListener(this);
 		gc.setSequenceReplyMessageListener(this);
+
+		frame.setTitle(Integer.toString(gc.myClient.ID));
 		System.out.println("Group Communcation Started");
 	}
 
@@ -72,7 +74,7 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 		txtpnChat.setText("--== Group Chat ==--");
 		txtpnChat.setFont(new Font("Consolas", Font.PLAIN, 12));
 
-		txtpnMessage.setText(" ➔ ");
+		txtpnMessage.setText(" -> ");
 		frame.getContentPane().add(txtpnMessage);
 		
 		JScrollPane scrollPaneStatus = new JScrollPane();
@@ -194,7 +196,8 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 				gc.myClientList.put(entry.getKey(),false);
 			}
 			gc.myClientList.put(coordinatorMessage.clientID, gc.bullyMessageHandler.setCoordinator());
-			System.out.println("Coordinator: "+gc.myClientList);
+			System.out.println("Coordinator: " + gc.myClientList);
+		
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
