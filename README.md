@@ -19,7 +19,7 @@ Implement a distributed election to process to elect a leader (Bully algorithm).
 - [X] Never display a message on the screen that is ahead of or out of order.
 
 ## Bully Algorithm
-The goal is to develope an algorithm for granting the resource which satisfies the following conditions:
+The goal is to develop an algorithm for granting the resource which satisfies the following conditions:
 ME1: (Safety) At most one process may execute in the critical section (CS) at a time.
 ME2: (liveness) if every process which is granted the resource eventually releases it, then every request is eventually granted.
 ME3: different requests for the resource must be granted in the order in which they are made.
@@ -79,3 +79,64 @@ An election process is typically performed in two phases:
 ```
 
 ![Message structure](/Images/MessageStructure.png)
+
+## Code description
+
+When a new client joins the chat they send a "join message" to all the other participants in the chat.
+The new client is added to the client list and an election starts to decide who has the highest ID and
+hence will be chosen as the coordinator of the chat. 
+
+```java
+    public void onIncomingJoinMessage(JoinMessage joinMessage) {
+        try {
+            gc.myClientList.put(joinMessage.clientID, false);
+            txtpnStatus.setText(joinMessage.clientID + " join." + "\n" + txtpnStatus.getText());
+            if(joinMessage.clientID != gc.myClient.ID) {
+                gc.sendJoinResponseMessage(gc.myClient);
+                gc.sendElectionRequestMessage(joinMessage.clientID);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+```
+
+When an election request is made the recieving clients will compare their ID to the election leaders ID.
+If the recieving clients ID is larger than the election leaders ID then their ID will send a message back 
+to the election leader letting the election leader know that they are up for election.
+
+If no client has a larged ID than the election leader the leader will be chosen as the new coordinator.
+
+```java
+	public void onIncomingElectionRequestMessage(ElectionRequestMessage electionRequestMessage) {
+		try {				
+			if (gc.myClient.ID > electionRequestMessage.clientID){
+				gc.sendElectionReplyMessage(gc.myClient.ID);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+```
+
+If one or multiple participants are found with a higher ID than the election leader and answers the election
+message in time the participants with a higher ID are added to the list of posible coordinators.
+
+The largest ID in the list of posible coordinators is then chosen as the new coordinator of the group chat and
+has to send a message to all the chat members letting them know that they are chosen as the new coordinator.
+
+```java
+	public void onIncomingElectionReplyMessage(ElectionReplyMessage electionReplyMessage) {
+		try {
+			if(gc.bullyMessageHandler.isWithinTimeoutLimit(electionReplyMessage.startElectionTime)){
+				gc.electionCandidateList.add(electionReplyMessage.clientID);
+				Integer maxClientID = (Collections.max(gc.electionCandidateList));
+				gc.sendCoordinatorMessage(maxClientID);
+			} else {
+				gc.sendCoordinatorMessage(electionReplyMessage.clientID);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+```
