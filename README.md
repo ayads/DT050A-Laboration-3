@@ -91,22 +91,22 @@ When a new client joins the chat they send a "join message" to all the other par
             txtpnStatus.setText(joinMessage.clientID + " join." + "\n" + txtpnStatus.getText());
             if(joinMessage.clientID != gc.myClient.ID) {
                 gc.sendJoinResponseMessage(gc.myClient);
-                gc.sendElectionRequestMessage(joinMessage.clientID);
-            }
+			}
+			gc.sendElectionRequestMessage(joinMessage.clientID);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 ```
 
-When an election request is made the recieving clients will compare their ID to the election leaders ID. If the recieving clients ID is larger than the election leaders ID then their ID will send a message back to the election leader letting the election leader know that they are up for election.
+When an election request is made the recieving clients will compare their ID to the election leaders ID. If the recieving clients ID is larger(or equal to) than the election leaders ID then their ID will send a message back to the election leader letting the election leader know that they are up for election.
 
 If no client has a larged ID than the election leader the leader will be chosen as the new coordinator.
 
 ```java
 	public void onIncomingElectionRequestMessage(ElectionRequestMessage electionRequestMessage) {
 		try {				
-			if (gc.myClient.ID > electionRequestMessage.clientID){
+			if (gc.myClient.ID >= electionRequestMessage.clientID){
 				gc.sendElectionReplyMessage(gc.myClient.ID);
 			}
 		} catch (Exception e) {
@@ -185,6 +185,26 @@ Using the timestamp of the message and comparing it to the previous messages tim
 			if(previousTime<sequenceReplyMessage.time){
 				txtpnChat.setText(sequenceReplyMessage.clientID + sequenceReplyMessage.chat + "\n" + txtpnChat.getText());
 				previousTime = sequenceReplyMessage.time;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+```
+
+When a client leaves the chat group a new coordinator must be elected. To achieve that the client must first be removed from the candidate list. After that the other clients will send an election request appended with their id through group communication.
+```java
+	public void onIncomingLeaveMessage(LeaveMessage leaveMessage) {
+		try {
+			if (gc.myClientList.containsKey(leaveMessage.clientID)){
+				txtpnStatus.setText(leaveMessage.clientID + " left." + "\n" + txtpnStatus.getText());
+				gc.electionCandidateList.remove(leaveMessage.clientID);
+				if(gc.myClientList.get(leaveMessage.clientID)){
+					gc.myClientList.remove(leaveMessage.clientID);
+					if(Integer.compare(gc.myClient.ID, leaveMessage.clientID) != 0){
+						gc.sendElectionRequestMessage(gc.myClient.ID);
+					}
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

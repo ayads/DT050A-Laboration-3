@@ -22,6 +22,21 @@ public class BullyMessageHandler {
 		electionCandidateList.add(maxClientID);
 		return electionCandidateList;
 	}
+
+	
+
+    public Vector<Integer> removeDuplicates(Vector<Integer> electionCandidateList){
+    	for(int i=0; i < electionCandidateList.size(); i++){
+    	    for(int j=0; j < electionCandidateList.size(); j++){
+    	    	if(i != j){
+    	        	if(electionCandidateList.elementAt(i).equals(electionCandidateList.elementAt(j))){
+						electionCandidateList.removeElementAt(j);
+    	            }
+    	        }
+    	    }
+		}
+		return electionCandidateList;
+	}
 	
 	public Boolean setCoordinator() {
 		return true;

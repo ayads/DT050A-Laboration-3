@@ -124,8 +124,8 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 			txtpnStatus.setText(joinMessage.clientID + " join." + "\n" + txtpnStatus.getText());
 			if(joinMessage.clientID != gc.myClient.ID) {
 				gc.sendJoinResponseMessage(gc.myClient);
-				gc.sendElectionRequestMessage(joinMessage.clientID);
 			}
+			gc.sendElectionRequestMessage(joinMessage.clientID);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -149,11 +149,9 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 			if (gc.myClientList.containsKey(leaveMessage.clientID)){
 				txtpnStatus.setText(leaveMessage.clientID + " left." + "\n" + txtpnStatus.getText());
 				gc.electionCandidateList.remove(leaveMessage.clientID);
-				
-				//System.out.println("New List: "+gc.myClientList);
 				if(gc.myClientList.get(leaveMessage.clientID)){
 					gc.myClientList.remove(leaveMessage.clientID);
-					if(gc.myClient.ID != leaveMessage.clientID){
+					if(Integer.compare(gc.myClient.ID, leaveMessage.clientID) != 0){
 						gc.sendElectionRequestMessage(gc.myClient.ID);
 					}
 				}
@@ -166,7 +164,7 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingElectionRequestMessage(ElectionRequestMessage electionRequestMessage) {
 		try {				
-			if (gc.myClient.ID > electionRequestMessage.clientID){
+			if (gc.myClient.ID >= electionRequestMessage.clientID){
 				gc.sendElectionReplyMessage(gc.myClient.ID);
 			}
 		} catch (Exception e) {
@@ -178,11 +176,11 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	public void onIncomingElectionReplyMessage(ElectionReplyMessage electionReplyMessage) {
 		try {
 			if(gc.bullyMessageHandler.isWithinTimeoutLimit(electionReplyMessage.startElectionTime)){
-				gc.electionCandidateList.add(electionReplyMessage.clientID);
+				if(!gc.electionCandidateList.contains(electionReplyMessage.clientID)){
+					gc.electionCandidateList.add(electionReplyMessage.clientID);
+				}
 				Integer maxClientID = (Collections.max(gc.electionCandidateList));
 				gc.sendCoordinatorMessage(maxClientID);
-			} else {
-				gc.sendCoordinatorMessage(electionReplyMessage.clientID);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -192,11 +190,12 @@ public class WindowProgram implements ChatMessageListener, JoinMessageListener, 
 	@Override
 	public void onIncomingCoordinatorMessage(CoordinatorMessage coordinatorMessage) {
 		try {
+			System.out.println("I am the new coordinator: " + coordinatorMessage.clientID);
 			for (HashMap.Entry<Integer, Boolean> entry : gc.myClientList.entrySet()) {
 				gc.myClientList.put(entry.getKey(),false);
 			}
 			gc.myClientList.put(coordinatorMessage.clientID, gc.bullyMessageHandler.setCoordinator());
-			System.out.println("Coordinator: " + gc.myClientList);
+			System.out.println("gc.myClientList: " + gc.myClientList);
 		
 		} catch (Exception e) {
 			e.printStackTrace();
